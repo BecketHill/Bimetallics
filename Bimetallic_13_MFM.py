@@ -4,8 +4,8 @@ from scipy.interpolate import interp1d
 from scipy.optimize import root_scalar
 
 
-#Defining compounds and assigning material
-#All from Herbst, Croat [1983]. Tb values are averages of others.
+# Defining compounds and assigning material
+# All from Herbst, Croat [1982].
 
 dy = {"name":"Dy",
     "rho":8.84, "A":330, "theta":0, "nff":7660, "nrf":-1060, "nrr":408,
@@ -37,24 +37,25 @@ kB = 1.381e-16     # Boltzmann, erg/K
 rho = mat["rho"]   #density DyFe3, g/cc
 A = mat["A"]       #atomic weight DyFe3, g/mol
 
-#applied field, Gauss
+# applied field, Gauss
 #h = 1.6*10**4
 h = 0
 
 # field coefficients, dimensionless
+# canting model
 
-#Canting model:
 nff,nrf,nrr = mat["nff"], mat["nrf"], mat["nrr"]
-
-# angular momenta
 
 theta = mat["theta"] #degrees canting, Herbst
 gamma = np.cos(theta*np.pi/180)
 
+# angular momenta
+
 Jr, Sr, Lr = mat["Jr"] * gamma, mat["Sr"], mat["Lr"]
 Jf, Sf, Lf = mat["Jf"], mat["Jr"], mat["Jr"]
 
-#conversion factor, erg/(Gauss cc) = Gauss
+# conversion factor, erg/(Gauss cc) = Gauss
+
 d = NA*muB*rho/A
 
 # ---------------------------
@@ -121,9 +122,6 @@ def brillouin(J, x):
 mur = np.zeros(Tm + 1)
 muf = np.zeros(Tm + 1)
 
-#exchange fields, Gauss
-
-
 # Initial conditions
 mur[0] = mur0
 muf[0] = -muf0
@@ -153,35 +151,29 @@ for n in range(N):
 
 # ---------------------------
 # Build T-dependent lists
-# Mathematica tables started at i=1
 # ---------------------------
 Tvals = np.arange(1, N + 1) * dT
 
 murt = np.column_stack([Tvals, 1 * mur[1:]])
 muft = np.column_stack([Tvals, 3 * -muf[1:]])
 must = np.column_stack([Tvals, 1 * mur[1:] + 3 * muf[1:]])
-#print(muat)
-
-musti = np.column_stack([Tvals, 1 * mur[1:] + 3 * muf[1:]])
 
 # ---------------------------
 # Interpolation
 # ---------------------------
 imurt = interp1d(murt[:, 0], murt[:, 1], kind="linear", fill_value="extrapolate")
 imuft = interp1d(muft[:, 0], muft[:, 1], kind="linear", fill_value="extrapolate")
-imust = interp1d(musti[:, 0], musti[:, 1], kind="linear", fill_value="extrapolate")
+imust = interp1d(must[:, 0], must[:, 1], kind="linear", fill_value="extrapolate")
 #print(must)
 
 # ---------------------------
-# Find Tc
-# Mathematica:
-# tc = FindRoot[imust[T] == 0., {T, 100.}][[1,2]]
+# Find Tcomp
 # ---------------------------
 sol = root_scalar(lambda T: float(imust(T)), bracket=[10, 400], method="brentq")
 tc = sol.root
 
 # ---------------------------
-# Contributions at Tc
+# Contributions at Tcomp
 # ---------------------------
 murtc = float(imurt(tc))
 muftc = float(imuft(tc))
@@ -205,7 +197,7 @@ imurtot = np.column_stack([np.arange(2, Tm+1), [(1 - grs / gr) * float(imurt(T))
 #print(f"Jr                             = {Jr}")
 #print(f"gc                             = {gc}")
 #print(f"gcs                            = {gcs}")
-print(f"Tc (K)                         = {tc}")
+print(f"Tcomp (K)                         = {tc}")
 #print(f"contribution of Tb at Tc (uB)  = {muctc}")
 #print(f"spin component at Tc (uB)      = {Srtc}")
 #print(f"contribution of 2Fe at Tc (uB) = {muatc}")
@@ -223,19 +215,6 @@ Mreq = [float(imust(T)) for T in Treq]
 # Plots
 # ---------------------------
 
-
-#plt.figure(figsize=(8, 5))
-#plt.plot(muct[:, 0], muct[:, 1], label="3Tb")
-#plt.plot(muat[:, 0], muat[:, 1], label="2Fe")
-#plt.plot(mudt[:, 0], mudt[:, 1], label="3Fe")
-#plt.plot(musti[:, 0], musti[:, 1], label="total")
-#plt.xlabel("T (K)")
-#plt.ylabel("M (uB/molecule)")
-#plt.grid(True)
-#plt.legend()
-#plt.tight_layout()
-#plt.show()
-
 Tplot = np.linspace(1, Tm, 1000)
 sxplot = np.array([abs(sx(T)) for T in Tplot])
 
@@ -243,7 +222,7 @@ plt.figure(figsize=(8, 5))
 plt.title(f"Moment and Spin Model for {mat["name"]}Fe3")
 plt.plot(murt[:, 0], murt[:, 1], label=f"{mat["name"]}")
 plt.plot(muft[:, 0], muft[:, 1], label="Fe3")
-plt.plot(musti[:, 0], musti[:, 1], label="Total Moment")
+plt.plot(must[:, 0], must[:, 1], label="Total Moment")
 plt.plot(imurtst[:, 0], imurtst[:, 1], "--", label=f"{mat["name"]} Spin")
 plt.plot(imurtot[:, 0], imurtot[:, 1], "--", label=f"{mat["name"]} Orbital")
 plt.plot(Tplot, sxplot, label="Total Spin Excess")

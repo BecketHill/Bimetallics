@@ -36,7 +36,7 @@ yb = {"name":"Yb",
     "Jc":3.5, "Sc":0.5, "Lc":3, "gc":8/7, "Jf":1, "Sa":5/2, "La":0
 }
 
-mat = yb
+mat = dy
 
 # ---------------------------
 # Input parameters
@@ -122,8 +122,6 @@ def brillouin(J, x):
 
 # ---------------------------
 # Recurrence arrays
-# Mathematica used muc[n], mua[n], mud[n]
-# Here we store them as numpy arrays
 # ---------------------------
 muc = np.zeros(Tm + 1)
 mua = np.zeros(Tm + 1)
@@ -155,17 +153,13 @@ for n in range(Tm):
 
 # ---------------------------
 # Build T-dependent lists
-# Mathematica tables started at i=1
 # ---------------------------
 Tvals = np.arange(1, Tm + 1) * dT
 
 muct = np.column_stack([Tvals, muc[1:] / (muB * NA)])
 muat = np.column_stack([Tvals, mua[1:] / (muB * NA)])
 mudt = np.column_stack([Tvals, -mud[1:] / (muB * NA)])
-must = np.column_stack([Tvals, np.abs(muc[1:] + mua[1:] - mud[1:]) / (muB * NA)])
-#print(muat)
-
-musti = np.column_stack([Tvals, (muc[1:] + mua[1:] - mud[1:]) / (muB * NA)])
+must = np.column_stack([Tvals, (muc[1:] + mua[1:] - mud[1:]) / (muB * NA)])
 
 # ---------------------------
 # Interpolation
@@ -173,7 +167,7 @@ musti = np.column_stack([Tvals, (muc[1:] + mua[1:] - mud[1:]) / (muB * NA)])
 imuct = interp1d(muct[:, 0], muct[:, 1], kind="linear", fill_value="extrapolate")
 imuat = interp1d(muat[:, 0], muat[:, 1], kind="linear", fill_value="extrapolate")
 imudt = interp1d(mudt[:, 0], mudt[:, 1], kind="linear", fill_value="extrapolate")
-imust = interp1d(musti[:, 0], musti[:, 1], kind="linear", fill_value="extrapolate")
+imust = interp1d(must[:, 0], must[:, 1], kind="linear", fill_value="extrapolate")
 
 # ---------------------------
 # Find Tc
@@ -227,25 +221,11 @@ Mreq = [float(imust(T)) for T in Treq]
 # Plots
 # ---------------------------
 
-
-#plt.figure(figsize=(8, 5))
-#plt.plot(muct[:, 0], muct[:, 1], label="3Tb")
-#plt.plot(muat[:, 0], muat[:, 1], label="2Fe")
-#plt.plot(mudt[:, 0], mudt[:, 1], label="3Fe")
-#plt.plot(musti[:, 0], musti[:, 1], label="total")
-#plt.xlabel("T (K)")
-#plt.ylabel("M (uB/molecule)")
-#plt.grid(True)
-#plt.legend()
-#plt.tight_layout()
-#plt.show()
-
-
 plt.figure(figsize=(8, 5))
 plt.plot(muct[:, 0], muct[:, 1], label=f"3{mat["name"]} (c)")
 plt.plot(muat[:, 0], muat[:, 1], label=f"2Fe (a)")
 plt.plot(mudt[:, 0], mudt[:, 1], label=f"3Fe (d)")
-plt.plot(musti[:, 0], musti[:, 1], label="Total")
+plt.plot(must[:, 0], must[:, 1], label="Total")
 plt.plot(imuctst[:, 0], imuctst[:, 1], "--", label=f"3{mat["name"]} Spin")
 plt.plot(imuctot[:, 0], imuctot[:, 1], "--", label=f"3{mat["name"]} Orbital")
 plt.xlabel("T (K)")
