@@ -1,0 +1,2 @@
+Each program generates a plot of magnetization vs temperature for each sublattice of heavy rare-earth ferrimagnetic material, based on an iterating molecular field model. It then calculates the total magnetization, compensation point, and spin excess at that compensation point. Will throw an error if no compensation point is found within the "bracket" range.
+For the the iron garnet family, use "3_Sublattice_MFM.py." For bimetallics of type RE6Fe23, use "Bimetallic_MFM.py." For bimetallics of type RE6Fe23, use "Bimetallic_13_MFM.py."
