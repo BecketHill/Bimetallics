@@ -5,21 +5,31 @@ from scipy.optimize import root_scalar
 
 
 # Defining compounds and assigning material
-# All from Herbst, Croat [1982].
+# All from Tang, Zhong, Luo [1993].
+
+tb = {"name":"Tb",
+    "rho":9.06, "A":270.62, "theta":0, "nff":10950, "nrf":-2300, "nrr":207,
+    "Jr":6, "Sr":3, "Lr":3, "Jf":0.75, "Sf":0.75, "Lf":0, "mu0":5.81
+}
 
 dy = {"name":"Dy",
-    "rho":8.84, "A":330, "theta":0, "nff":7660, "nrf":-1060, "nrr":408,
-    "Jr":15/2, "Sr":5/2, "Lr":5, "Jf":1, "Sf":5/2, "Lf":0, "mu0":4.29
+    "rho":9.28, "A":274.19, "theta":0, "nff":10760, "nrf":-1810, "nrr":180,
+    "Jr":15/2, "Sr":5/2, "Lr":5, "Jf":0.75, "Sf":0.75, "Lf":0, "mu0":6.87
+}
+
+ho = {"name":"Ho",
+    "rho":9.44, "A":276.62, "theta":0, "nff":9710, "nrf":-1310, "nrr":130,
+    "Jr":8, "Sr":2, "Lr":6, "Jf":0.75, "Sf":0.75, "Lf":0, "mu0":13.79,"muf0":6.7
 }
 
 er = {"name":"Er",
-    "rho":9.08, "A":335, "theta":0, "nff":7760, "nrf":-842, "nrr":96,
-    "Jr":15/2, "Sr":3/2, "Lr":6, "Jf":1, "Sf":5/2, "Lf":0, "mu0":3.42
+    "rho":9.62, "A":278.95, "theta":0, "nff":10540, "nrf":-1140, "nrr":110,
+    "Jr":15/2, "Sr":3/2, "Lr":6, "Jf":0.75, "Sf":0.75, "Lf":0, "mu0":5.79
 }
 
 tm = {"name":"Tm",
-    "rho":9.78, "A":337, "theta":4.9, "nff":7000, "nrf":-761, "nrr":161,
-    "Jr":6, "Sr":1, "Lr":5, "Jf":1, "Sf":5/2, "Lf":0, "mu0":1.47
+    "rho":9.79, "A":280.62, "theta":0, "nff":9710, "nrf":-980, "nrr":50,
+    "Jr":6, "Sr":1, "Lr":5, "Jf":0.75, "Sf":0.75, "Lf":0, "mu0":3.72
 }
 
 mat = tm
@@ -29,7 +39,7 @@ mat = tm
 # ---------------------------
 dT = 1.0
 Tm = 700  # maximum temperature index
-tcomp_range = [10, 400]
+tcomp_range = [10, 550]
 
 # physical constants
 NA = 6.02e23       # Avogadro
@@ -70,8 +80,7 @@ gf = 1 + (Jf * (Jf + 1) + Sf * (Sf + 1) - Lf * (Lf + 1)) / (2 * Jf * (Jf + 1))
 # Initial magnetization, T = 0
 # ---------------------------
 mur0 = gr * Jr
-muf0 = (mur0-mat["mu0"])/3
-
+muf0 = (mur0-mat["mu0"])/2
 
 
 # ---------------------------
@@ -119,8 +128,8 @@ N = Tm
 for n in range(N):
     T = dT * (n + 1)
     # molecular fields
-    hr = h + d*(1*nrr*mur[n] + 3*nrf*muf[n]);
-    hf = h + d*(3*nff*muf[n] + 1*nrf*mur[n]);
+    hr = h + d*(1*nrr*mur[n] + 2*nrf*muf[n]);
+    hf = h + d*(2*nff*muf[n] + 1*nrf*mur[n]);
 
     xr = mur0 * muB * hr / (kB * T)
     xf = muf0 * muB * hf / (kB * T)
@@ -139,8 +148,8 @@ for n in range(N):
 Tvals = np.arange(1, N + 1) * dT
 
 murt = np.column_stack([Tvals, 1 * mur[1:]])
-muft = np.column_stack([Tvals, 3 * -muf[1:]])
-must = np.column_stack([Tvals, 1 * mur[1:] + 3 * muf[1:]])
+muft = np.column_stack([Tvals, 2 * -muf[1:]])
+must = np.column_stack([Tvals, 1 * mur[1:] + 2 * muf[1:]])
 
 # ---------------------------
 # Interpolation

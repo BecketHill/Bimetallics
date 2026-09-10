@@ -9,30 +9,30 @@ from scipy.optimize import root_scalar
 
 tb = {"name":"Tb",
     "rho":8.5, "A":2238, "theta":0, "nff":5100, "nrf":-700, "nrr":500,
-    "Jr":6, "Sr":3, "Lr":3, "Jf":1, "Sf":5/2, "Lf":0, "muf0":2.0
+    "Jr":6, "Sr":3, "Lr":3, "Jf":1, "Sf":5/2, "Lf":0, "mu0":20,"muf0":2.0
 }
 
 dy = {"name":"Dy",
     "rho":8.57, "A":2259, "theta":4.2, "nff":5107, "nrf":-656, "nrr":651,
-    "Jr":15/2, "Sr":5/2, "Lr":5, "Jf":1, "Sf":5/2, "Lf":0, "muf0":2.12
+    "Jr":15/2, "Sr":5/2, "Lr":5, "Jf":1, "Sf":5/2, "Lf":0, "mu0":11.89, "muf0":2.12
 }
 
 ho = {"name":"Ho",
     "rho":8.67, "A":2274, "theta":2.1, "nff":5516, "nrf":-701, "nrr":245,
-    "Jr":8, "Sr":2, "Lr":6, "Jf":1, "Sf":5/2, "Lf":0, "muf0":2.02
+    "Jr":8, "Sr":2, "Lr":6, "Jf":1, "Sf":5/2, "Lf":0, "mu0":13.79,"muf0":2.02
 }
 
 er = {"name":"Er",
     "rho":8.79, "A":2288, "theta":1.7, "nff":5008, "nrf":-611, "nrr":257,
-    "Jr":15/2, "Sr":3/2, "Lr":6, "Jf":1, "Sf":5/2, "Lf":0, "muf0":2.09
+    "Jr":15/2, "Sr":3/2, "Lr":6, "Jf":1, "Sf":5/2, "Lf":0, "mu0":6.03, "muf0":2.09
 }
 
 tm = {"name":"Tm",
     "rho":8.89, "A":2298, "theta":19.7, "nff":6445, "nrf":-759, "nrr":-264,
-    "Jr":6, "Sr":1, "Lr":5, "Jf":6, "Sf":5/2, "Lf":0, "muf0":1.86
+    "Jr":6, "Sr":1, "Lr":5, "Jf":6, "Sf":5/2, "Lf":0, "mu0":14.5,"muf0":1.86
 }
 
-mat = tb
+mat = ho
 
 # ---------------------------
 # Input parameters
@@ -48,8 +48,8 @@ rho = mat["rho"]   #density Dy6Fe23, g/cc
 A = mat["A"]       #atomic weight Dy6Fe23, g/mol
 
 # applied field, Gauss
-#h = 1.6*10**4
-h = 0
+h = 1.6*10**4
+#h = 0
 
 # field coefficients, dimensionless
 # canting model
@@ -62,7 +62,7 @@ gamma = np.cos(theta*np.pi/180)
 # angular momenta
 
 Jr, Sr, Lr = mat["Jr"] * gamma, mat["Sr"], mat["Lr"]
-Jf, Sf, Lf = mat["Jf"], mat["Jr"], mat["Jr"]
+Jf, Sf, Lf = mat["Jf"], mat["Sf"], mat["Lf"]
 
 # conversion factor, erg/(Gauss cc) = Gauss
 
@@ -82,27 +82,13 @@ gf = 1 + (Jf * (Jf + 1) + Sf * (Sf + 1) - Lf * (Lf + 1)) / (2 * Jf * (Jf + 1))
 # Initial magnetization, T = 0
 # ---------------------------
 mur0 = gr * Jr
-muf0 = mat["muf0"]
+muf0 = (6*mur0-mat["mu0"])/23
 
 
 
 # ---------------------------
 # Helper functions
 # ---------------------------
-def coth(x):
-    """Numerically stable coth."""
-    x = np.asarray(x, dtype=float)
-    out = np.empty_like(x)
-
-    small = np.abs(x) < 1e-10
-    out[~small] = 1.0 / np.tanh(x[~small])
-
-    # For tiny x, coth(x) ~ 1/x + x/3, but here just avoid divide-by-zero.
-    # Since the Brillouin combination cancels the singularity, using a tiny-x expansion
-    # for B_J is better than relying on coth directly.
-    out[small] = 1.0 / x[small]  # not usually used directly for tiny x in final code
-    return out
-
 
 def brillouin(J, x):
     """

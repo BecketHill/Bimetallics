@@ -85,20 +85,6 @@ mud0 = 3.0 * gd * Sd * muB * NA
 # ---------------------------
 # Helper functions
 # ---------------------------
-def coth(x):
-    """Numerically stable coth."""
-    x = np.asarray(x, dtype=float)
-    out = np.empty_like(x)
-
-    small = np.abs(x) < 1e-10
-    out[~small] = 1.0 / np.tanh(x[~small])
-
-    # For tiny x, coth(x) ~ 1/x + x/3, but here just avoid divide-by-zero.
-    # Since the Brillouin combination cancels the singularity, using a tiny-x expansion
-    # for B_J is better than relying on coth directly.
-    out[small] = 1.0 / x[small]  # not usually used directly for tiny x in final code
-    return out
-
 
 def brillouin(J, x):
     """
